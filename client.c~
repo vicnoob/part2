@@ -14,7 +14,7 @@ Defaults:
 
 #define _XOPEN_SOURCE 700
 
-
+#include <my_global.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
@@ -24,11 +24,45 @@ Defaults:
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
+#include <errno.h>
+#include <mysql.h>
+#include <time.h>
 
 
 #define BUFSIZE 2000
 #define SIZE 20
+
+void connectto_database(char* file_path, time_t now){
+   MYSQL *conn;
+   MYSQL_RES *res;
+   MYSQL_ROW row;
+   char *server = "localhost";
+   char *user = "root";
+   char *password = "vicnoob123"; /* set me first */
+   char *database = "transfer_history";
+   char q[BUFSIZE];
+   sprintf(q,"INSERT INTO history (filename,time) VALUES('%s','%s')",file_path,ctime(&now));
+   conn = mysql_init(NULL);
+   /* Connect to database */
+   if (!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)) {
+      fprintf(stderr, "%s\n", mysql_error(conn));
+      exit(1);
+   }
+   /* send SQL query */
+   if (mysql_query(conn, q)) {
+      fprintf(stderr, "%s\n", mysql_error(conn));
+      exit(1);
+   }
+   res = mysql_use_result(conn);
+   /* output table name */
+   // printf("MySQL Tables in UNIX database:\n");
+   // while ((row = mysql_fetch_row(res)) != NULL)
+   //    printf("%s \n", row[0]);
+   /* close connection */
+   mysql_free_result(res);
+   mysql_close(conn);
+}
+
 
 int main(int argc, char **argv) {
     char protoname[] = "tcp";
