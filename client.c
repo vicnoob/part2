@@ -143,7 +143,14 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
-    connectto_database(file_path, t);
+    //printf("%d", size);
+    
+    char str[20];
+    sprintf(str, "%d", size);
+    
+    strcat(str, " bytes");
+    //printf("%s", str);
+    connectto_database(file_path, str, t);
     free(user_input);
     free(server_reply);
     close(filefd);
