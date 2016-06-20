@@ -32,7 +32,7 @@ Defaults:
 #define BUFSIZE 2000
 #define SIZE 20
 
-void connectto_database(char* file_path, time_t now){
+void connectto_database(char* file_path, char* str, time_t now){
    MYSQL *conn;
    MYSQL_RES *res;
    MYSQL_ROW row;
@@ -41,7 +41,8 @@ void connectto_database(char* file_path, time_t now){
    char *password = "vicnoob123"; /* set me first */
    char *database = "transfer_history";
    char q[BUFSIZE];
-   sprintf(q,"INSERT INTO history (filename,time) VALUES('%s','%s')",file_path,ctime(&now));
+   //sprintf(q,"INSERT INTO history (filename,time) VALUES('%s','%s')",file_path,ctime(&now));
+   sprintf(q,"INSERT INTO history (filename, size, time) VALUES('%s', '%s' ,'%s')",file_path, str,ctime(&now));
    conn = mysql_init(NULL);
    /* Connect to database */
    if (!mysql_real_connect(conn, server, user, password, database, 0, NULL, 0)) {
@@ -54,10 +55,7 @@ void connectto_database(char* file_path, time_t now){
       exit(1);
    }
    res = mysql_use_result(conn);
-   /* output table name */
-   // printf("MySQL Tables in UNIX database:\n");
-   // while ((row = mysql_fetch_row(res)) != NULL)
-   //    printf("%s \n", row[0]);
+   
    /* close connection */
    mysql_free_result(res);
    mysql_close(conn);
@@ -130,10 +128,10 @@ int main(int argc, char **argv) {
         perror("connect");
         return EXIT_FAILURE;
     }
-
+    int size = 0;
     while (1) {
         read_return = read(filefd, buffer, BUFSIZ);
-	
+	size+= BUFSIZ;
         if (read_return == 0)
             break;
         if (read_return == -1) {
@@ -145,7 +143,14 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
     }
-    connectto_database(file_path, t);
+    //printf("%d", size);
+    
+    char str[20];
+    sprintf(str, "%d", size);
+    
+    strcat(str, " bytes");
+    //printf("%s", str);
+    connectto_database(file_path, str, t);
     free(user_input);
     free(server_reply);
     close(filefd);
